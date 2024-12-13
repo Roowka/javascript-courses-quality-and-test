@@ -1,9 +1,10 @@
 // Constantes
 const DEFAULT_TRIES = 5;
-const SCORE_DECREMENT = 50;
+const SCORE_DECREMENT = 10;
 const SCORE_INTERVAL_MS = 1000;
 const BORDER_TRANSITION_MS = 500;
 const FONT_SIZE_TRANSITION_MS = 500;
+const INITIAL_SCORE = 120;
 
 // Initialisation des variables globales
 let numberOfTries = parseInt(localStorage.getItem('numberOfTries'), 10);
@@ -20,7 +21,7 @@ let unknownWord = localStorage.getItem('unknownWord') || '';
 let usedLetters = JSON.parse(localStorage.getItem('usedLetters')) || [];
 let score = parseInt(localStorage.getItem('score'), 10);
 if (isNaN(score)) {
-    score = 1000;
+    score = INITIAL_SCORE;
     localStorage.setItem('score', score);
 }
 
@@ -70,7 +71,7 @@ function resetForNewDay() {
     localStorage.removeItem('score');
     numberOfTries = DEFAULT_TRIES;
     usedLetters = [];
-    score = 1000;
+    score = INITIAL_SCORE;
 }
 
 function startScoreDecrement() {
