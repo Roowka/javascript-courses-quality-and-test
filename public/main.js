@@ -1,10 +1,10 @@
 // Constantes
-const DEFAULT_TRIES = 5;
+const DEFAULT_TRIES = 8;
 const SCORE_DECREMENT = 10;
 const SCORE_INTERVAL_MS = 1000;
 const BORDER_TRANSITION_MS = 500;
 const FONT_SIZE_TRANSITION_MS = 500;
-const INITIAL_SCORE = 120;
+const INITIAL_SCORE = 400;
 
 // Initialisation des variables globales
 let numberOfTries = parseInt(localStorage.getItem('numberOfTries'), 10);

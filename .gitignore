@@ -133,3 +133,6 @@ dist
 
 # IDEA files
 .idea
+
+# Ignore all file inside /public/shared-images
+/public/shared-images/*

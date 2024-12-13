@@ -1,9 +1,9 @@
 require('dotenv').config();
+const puppeteer = require('puppeteer');
 const express = require('express');
 const path = require('path');
 const Game = require('./game');
 const wordBank = require('./wordBank');
-
 const PORT = process.env.PORT || 3030;
 
 const app = express();
@@ -58,7 +58,8 @@ app.post('/api/reset', (req, res) => {
 });
 
 // Route pour afficher le résultat
-app.get('/result', (req, res) => {
+// Route pour afficher le résultat
+app.get('/result', async (req, res) => {
     const { word, score, result } = req.query;
 
     if (!word || !score || !result) {
@@ -70,7 +71,52 @@ app.get('/result', (req, res) => {
             ? 'Félicitations, vous avez gagné ! 🎉'
             : 'Dommage, vous avez perdu ! 😢';
 
-    res.render('pages/result', { word, score, resultMessage });
+    const fileName = `${Date.now()}.png`;
+    const filePath = path.join(__dirname, 'public', 'shared-images', fileName);
+    const imageUrl = `/shared-images/${fileName}`;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        // Génération du contenu HTML pour l'image
+        const htmlContent = `
+        <html lang="fr">
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background: linear-gradient(120deg, #3b82f6, #9333ea); color: white; text-align: center;">
+            <div style="width: 800px; height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h1 style="font-size: 44px; margin-bottom: 20px;">${resultMessage}</h1>
+                <div style="background: white; color: black; padding: 24px 42px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <p style="font-size: 32px; margin: 10px 0;">Le mot était : <strong>${word}</strong></p>
+                    <p style="font-size: 32px; margin: 10px 0;">Score : <strong style="color: #e11d48;">${score}</strong></p>
+                </div>
+                <div style="margin-top: 24px; font-size: 24px;">
+                    <p>Relevez le défi maintenant !</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+
+        // Charger le contenu HTML dans la page
+        await page.setViewport({ width: 800, height: 400 });
+        await page.setContent(htmlContent);
+
+        // Sauvegarder l'image
+        await page.screenshot({ path: filePath });
+        await browser.close();
+    } catch (error) {
+        console.error('Error generating image:', error);
+    }
+
+    res.render('pages/result', {
+        word,
+        score,
+        resultMessage,
+        imageUrl,
+        baseUrl,
+        result,
+    });
 });
 
 // Route pour gérer les tentatives
@@ -103,6 +149,7 @@ app.post('/api/guess', (req, res) => {
         status: 'continue',
     });
 });
+
 
 // Lancer le serveur
 (async () => {

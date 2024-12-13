@@ -2,6 +2,12 @@
 <html lang="fr" class="h-full">
 <head>
     <%- include('../partials/head'); %>
+    <meta property="og:title" content="<%= resultMessage %>" />
+    <meta property="og:description" content="J'ai obtenu un score de <%= score %> en devinant le mot '<%= word %>' dans le jeu du pendu !" />
+    <meta property="og:image" content="<%= imageUrl %>" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="<%= baseUrl %>/result?word=<%= word %>&score=<%= score %>&result=<%= result %>" />
+    <title>Résultat du jeu du pendu</title>
 </head>
 <body class="h-full bg-gray-300 text-gray-800">
 <div class="flex items-center justify-center h-full w-full">
@@ -25,10 +31,16 @@
                 <p class="text-4xl font-bold text-center text-red-500"><%= score %></p>
             </section>
 
-            <!-- Bouton Rejouer -->
-            <div class="text-center">
-                <a href="/" onclick="resetGame(event)" class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition-colors">
-                    Rejouer
+            <!-- Boutons d'action -->
+            <div class="text-center space-y-4">
+                <% if (typeof shared === 'undefined' || !shared) { %>
+                    <!-- Bouton Partager -->
+                    <button onclick="shareScore()" class="bg-green-500 text-white py-2 px-4 rounded-lg shadow hover:bg-green-600 transition-colors">
+                        Partager mon score
+                    </button>
+                <% } %>
+                <a href="/" onclick="resetGame(event)" class="inline-block bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition-colors">
+                    <%= typeof shared !== 'undefined' && shared ? 'Jouer' : 'Rejouer' %>
                 </a>
             </div>
         </main>
@@ -49,6 +61,27 @@
             })
             .catch(err => console.error('Erreur lors de la réinitialisation du jeu :', err));
     }
+
+    function shareScore() {
+        const word = "<%= word %>";
+        const score = "<%= score %>";
+        const resultMessage = "<%= resultMessage %>";
+        const shareUrl = `${window.location.href}`;
+
+        if (navigator.share) {
+            navigator
+                .share({
+                    title: 'Mon score au jeu du pendu',
+                    text: `J'ai obtenu un score de ${score} en devinant le mot "${word}" dans le jeu du pendu ! 🎉`,
+                    url: shareUrl,
+                })
+                .then(() => console.log('Score partagé avec succès !'))
+                .catch(err => console.error('Erreur lors du partage :', err));
+        } else {
+            alert("Le partage n'est pas pris en charge sur cet appareil ou ce navigateur.");
+        }
+    }
+
 </script>
 
 <!-- Styles pour la pleine hauteur sur mobile -->
