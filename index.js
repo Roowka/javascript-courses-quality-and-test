@@ -58,13 +58,22 @@ app.post('/api/reset', (req, res) => {
 });
 
 // Route pour afficher le résultat
-// Route pour afficher le résultat
 app.get('/result', async (req, res) => {
-    const { word, score, result } = req.query;
+    const {data} = req.query;
 
-    if (!word || !score || !result) {
+    if (!data) {
         return res.redirect('/');
     }
+
+    let decodedData;
+    try {
+        decodedData = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
+    } catch (error) {
+        console.error('Erreur de décodage Base64 :', error);
+        return res.redirect('/');
+    }
+
+    const {word, score, result} = decodedData;
 
     const resultMessage =
         result === 'win'
@@ -99,11 +108,11 @@ app.get('/result', async (req, res) => {
         `;
 
         // Charger le contenu HTML dans la page
-        await page.setViewport({ width: 800, height: 400 });
+        await page.setViewport({width: 800, height: 400});
         await page.setContent(htmlContent);
 
         // Sauvegarder l'image
-        await page.screenshot({ path: filePath });
+        await page.screenshot({path: filePath});
         await browser.close();
     } catch (error) {
         console.error('Error generating image:', error);
@@ -131,16 +140,28 @@ app.post('/api/guess', (req, res) => {
     const result = game.guess(letter);
 
     if (!result.unknowWord.includes('#')) {
+        const data = {
+            word: game.word,
+            score: 100,
+            result: 'win',
+        };
+        const encodedData = Buffer.from(JSON.stringify(data)).toString('base64');
         return res.json({
             result,
             status: 'win',
-            redirectTo: `/result?word=${game.word}&score=100&result=win`,
+            redirectTo: `/result?data=${encodedData}`,
         });
     } else if (game.getNumberOfTries() <= 0) {
+        const data = {
+            word: game.word,
+            score: 0,
+            result: 'lose',
+        };
+        const encodedData = Buffer.from(JSON.stringify(data)).toString('base64');
         return res.json({
             result,
             status: 'lose',
-            redirectTo: `/result?word=${game.word}&score=0&result=lose`,
+            redirectTo: `/result?data=${encodedData}`,
         });
     }
 
@@ -149,6 +170,7 @@ app.post('/api/guess', (req, res) => {
         status: 'continue',
     });
 });
+
 
 
 // Lancer le serveur

@@ -4,14 +4,14 @@ class Game {
     constructor() {
         this.word = null; // Défini après `chooseWord`
         this.unknowWord = null;
-        this.numberOfTries = 5;
+        this.numberOfTries = 8;
     }
 
     reset() {
         // Utiliser le WordBank pour choisir un mot
         this.word = wordBank.getRandomWord();
         this.unknowWord = this.word.replace(/./g, '#');
-        this.numberOfTries = 5;
+        this.numberOfTries = 8;
     }
 
     guess(oneLetter) {
