@@ -31,7 +31,9 @@ if (isNewDay) {
 
 // DOM Elements
 const numberOfTriesDom = document.querySelector('#numberOfTries');
-numberOfTriesDom.textContent = numberOfTries;
+if (numberOfTriesDom) {
+    numberOfTriesDom.textContent = numberOfTries;
+}
 
 const inputWord = document.querySelector('input[name="word"]');
 const currentWordDom = document.querySelector('#current-word');
@@ -176,7 +178,9 @@ function handleCorrectGuess() {
 function handleIncorrectGuess() {
     numberOfTries--;
     localStorage.setItem('numberOfTries', numberOfTries);
-    numberOfTriesDom.textContent = numberOfTries;
+    if (numberOfTriesDom) {
+        numberOfTriesDom.textContent = numberOfTries;
+    }
 
     animateIncorrectGuess();
 

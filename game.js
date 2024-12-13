@@ -1,60 +1,45 @@
-const tools = require('./tools.js');
-const csv = require('csv-parser');
-const fs = require('fs');
+const wordBank = require('./wordBank');
 
 class Game {
     constructor() {
-        this.listOfWords = [];
-    }
-
-    loadWords() {
-        return new Promise((resolve, reject) => {
-            fs.createReadStream('words_fr.txt')
-                .pipe(csv())
-                .on('data', (row) => {
-                    this.listOfWords.push(row.word.toLowerCase());
-                })
-                .on('end', () => {
-                    this.chooseWord();
-                    while (this.word.length < 5 || this.word.length > 8) {
-                        this.chooseWord();
-                    }
-                    resolve();
-                })
-                .on('error', reject);
-        });
-    }
-
-    chooseWord() {
-        if (this.listOfWords.length > 0) {
-            this.word = this.listOfWords[tools.getRandomInt(this.listOfWords.length)];
-            this.unknowWord = this.word.replace(/./g, '#');
-        } else {
-            throw new Error("No words available.");
-        }
-    }
-
-    guess(oneLetter, unknowWord) {
-        oneLetter = oneLetter.toLowerCase();
-        if (!this.word) {
-            throw new Error("No word set.");
-        }
-        if (this.word.includes(oneLetter)) {
-            for (let i = 0; i < this.word.length; i++) {
-                if (this.word[i] === oneLetter) {
-                    unknowWord = unknowWord.substring(0, i) + this.word[i] + unknowWord.substring(i + 1);
-                }
-            }
-            return { unknowWord: unknowWord, result: true };
-        }
-        return { unknowWord: unknowWord, result: false };
+        this.word = null; // Défini après `chooseWord`
+        this.unknowWord = null;
+        this.numberOfTries = 5;
     }
 
     reset() {
-        this.chooseWord();
-        while (this.word.length < 5 || this.word.length > 8) {
-            this.chooseWord();
+        // Utiliser le WordBank pour choisir un mot
+        this.word = wordBank.getRandomWord();
+        this.unknowWord = this.word.replace(/./g, '#');
+        this.numberOfTries = 5;
+    }
+
+    guess(oneLetter) {
+        oneLetter = oneLetter.toLowerCase();
+
+        if (!this.word) {
+            throw new Error("No word set.");
         }
+
+        let updatedUnknowWord = this.unknowWord;
+        if (this.word.includes(oneLetter)) {
+            // Remplacer les caractères masqués
+            for (let i = 0; i < this.word.length; i++) {
+                if (this.word[i] === oneLetter) {
+                    updatedUnknowWord = updatedUnknowWord.substring(0, i) + this.word[i] + updatedUnknowWord.substring(i + 1);
+                }
+            }
+            this.unknowWord = updatedUnknowWord; // Mettre à jour unknowWord
+            return { unknowWord: this.unknowWord, result: true };
+        }
+
+        // Décrémenter les essais si la lettre n'est pas dans le mot
+        this.numberOfTries--;
+        return { unknowWord: this.unknowWord, result: false };
+    }
+
+    getNumberOfTries() {
+        return this.numberOfTries;
     }
 }
 

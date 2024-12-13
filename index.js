@@ -1,13 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const Game = require('./game.js');
+const Game = require('./game');
+const wordBank = require('./wordBank');
 
 const PORT = process.env.PORT || 3030;
 
 const app = express();
-const game = new Game();
-
 const scores = [];
 
 // Middleware
@@ -16,107 +15,102 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 
+// Stockage des sessions de jeux par utilisateur
+const games = {};
+
+// Middleware pour gérer les sessions de jeu
+app.use((req, res, next) => {
+    const sessionId = req.headers['x-session-id'] || req.ip;
+
+    if (!games[sessionId]) {
+        const game = new Game();
+        games[sessionId] = game;
+        game.reset();
+    }
+
+    req.game = games[sessionId];
+    next();
+});
+
 // Routes
-app.get('/', (request, response) => {
-    response.render('pages/index', {
+app.get('/', (req, res) => {
+    const game = req.game;
+    res.render('pages/index', {
         game: game.unknowWord,
-        word: game.word,
+        word: game.word, // Ne pas envoyer le mot au front-end en production
     });
+});
+
+app.get('/api/current-word', (req, res) => {
+    const game = req.game;
+
+    if (!game.word) {
+        return res.status(404).json({ error: 'No word set. Please start a new game.' });
+    }
+
+    res.json({ currentWord: game.word });
+});
+
+app.post('/api/reset', (req, res) => {
+    const game = req.game;
+    game.reset(); // Réinitialiser le jeu
+    res.status(200).json({ message: 'Game reset successfully.', unknowWord: game.unknowWord });
 });
 
 // Route pour afficher le résultat
 app.get('/result', (req, res) => {
     const { word, score, result } = req.query;
 
-    // Vérification des données (protection minimale)
     if (!word || !score || !result) {
         return res.redirect('/');
     }
 
-    // Message selon le résultat
-    const resultMessage = result === 'win' ? 'Félicitations, vous avez gagné ! 🎉' : 'Dommage, vous avez perdu ! 😢';
+    const resultMessage =
+        result === 'win'
+            ? 'Félicitations, vous avez gagné ! 🎉'
+            : 'Dommage, vous avez perdu ! 😢';
+
     res.render('pages/result', { word, score, resultMessage });
 });
 
-// Create a new html page that display the scores
-app.get('/scores', (request, response) => {
-    response.render('pages/scores', { scores: scores });
-});
-
-app.post('/', (request, response) => {
-    try {
-        if (request.body.reset) {
-            console.log("Reset !");
-            game.reset();
-        } else if (request.body.word) {
-            let guess = game.guess(request.body.word);
-            console.log("Guess :" + guess);
-        } else {
-            console.log("No word provided in the request body.");
-        }
-
-        response.render('pages/index', {
-            unknowWord: game.unknowWord,
-            word: game.word,
-        });
-    } catch (error) {
-        console.error(error.message);
-        response.status(500).send("An error occurred: " + error.message);
-    }
-});
-
+// Route pour gérer les tentatives
 app.post('/api/guess', (req, res) => {
-    const { letter, unknowWord, tries, score } = req.body;
+    const { letter } = req.body;
 
-    if (!letter) {
-        return res.status(400).send("No letter provided in the request body.");
+    if (!letter || letter.length !== 1) {
+        return res.status(400).json({ error: 'Invalid letter provided.' });
     }
 
-    const result = game.guess(letter, unknowWord);
+    const game = req.game;
+    const result = game.guess(letter);
 
-    // Victoire : le mot est complètement deviné
     if (!result.unknowWord.includes('#')) {
         return res.json({
             result,
-            redirectTo: `/result?word=${game.word}&score=${score}&result=win`
+            status: 'win',
+            redirectTo: `/result?word=${game.word}&score=100&result=win`,
         });
-    }
-
-    // Défaite : plus d'essais restants
-    if (tries <= 1) {
+    } else if (game.getNumberOfTries() <= 0) {
         return res.json({
             result,
-            redirectTo: `/result?word=${game.word}&score=${score}&result=lose`
+            status: 'lose',
+            redirectTo: `/result?word=${game.word}&score=0&result=lose`,
         });
     }
 
-    // Sinon, continuer la partie
-    res.json({ result });
+    res.json({
+        result,
+        status: 'continue',
+    });
 });
 
-
-// API to get the current word
-app.get('/api/current-word', (request, response) => {
-    response.json({ currentWord: game.word });
-});
-
-// Add a random score to the scores array with the /api/score endpoint
-app.get('/api/score/add', (request, response) => {
-    const score = Math.floor(Math.random() * 100);
-    scores.push(score);
-    response.json({ score: score });
-});
-
-// Get all the scores
-app.get('/api/scores', (request, response) => {
-    response.json({ scores: scores });
-});
-
+// Lancer le serveur
 (async () => {
     try {
-        await game.loadWords();
+        await wordBank.loadWords(); // Charger les mots une seule fois
+
         app.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
     } catch (error) {
-        console.error("Failed to load words and start the server:", error);
+        console.error('Failed to load words and start the server:', error);
     }
 })();
