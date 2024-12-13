@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body class="h-full bg-gray-300 text-gray-800">
+<div class="flex items-center justify-center h-full w-full">
+    <div class="game-container flex flex-col h-full w-full sm:h-auto max-h-[852px] max-w-[440px] bg-white sm:shadow-lg sm:rounded-2xl">
+        <!-- En-tête -->
+        <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 sm:rounded-t-2xl">
+            <h1 class="text-4xl font-bold text-center mb-4"><%= resultMessage %></h1>
+        </header>
+
+        <!-- Contenu principal -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <!-- Mot à deviner -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 text-center mb-2">Le mot était :</h2>
+                <p class="text-3xl font-bold text-center text-blue-600"><%= word %></p>
+            </section>
+
+            <!-- Score -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 text-center mb-2">Votre score :</h2>
+                <p class="text-4xl font-bold text-center text-red-500"><%= score %></p>
+            </section>
+
+            <!-- Bouton Rejouer -->
+            <div class="text-center">
+                <a href="/" class="mt-4 inline-block bg-blue-500 text-white py-3 px-6 rounded-lg shadow hover:bg-blue-600 transition-colors">
+                    Rejouer
+                </a>
+            </div>
+        </main>
+
+        <!-- Pied de page -->
+        <footer class="bg-gray-800 text-gray-400 text-center py-4 sm:rounded-b-2xl">
+            <p class="text-sm">Merci d'avoir joué au jeu du pendu !</p>
+        </footer>
+    </div>
+</div>
+
+<!-- Styles pour la pleine hauteur sur mobile -->
+<style>
+    @media (max-width: 640px) {
+        .game-container {
+            height: 100vh;
+            max-height: 100vh;
+        }
+    }
+</style>
+</body>
+</html>

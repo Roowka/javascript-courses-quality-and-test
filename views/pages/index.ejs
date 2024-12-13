@@ -1,43 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" class="h-full">
 <head>
     <%- include('../partials/head'); %>
 </head>
 
-<body class="container">
+<body class="h-full bg-gray-300 text-gray-800">
+    <div class="flex items-center justify-center h-full w-full">
+        <div class="game-container flex flex-col h-full w-full sm:h-auto max-h-[852px] max-w-[440px] bg-white sm:shadow-lg sm:rounded-2xl">
+            <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 sm:rounded-t-2xl">
+                <h1 class="text-3xl font-bold text-center mb-2">Le jeu du pendu !</h1>
+                <p class="text-center text-lg">Essayez de deviner le mot !</p>
+            </header>
 
-<main>
+            <main class="flex-grow container mx-auto px-4 py-8 overflow-y-auto">
 
-    <h1>❓</span> Le jeu du pendu ❓</h1>
-    <p>Essayer de deviner le mot !</p>
+                <div class="mb-4 flex justify-center">
+                    <input class="w-20 h-16 text-5xl px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-center" type="text" name="word" placeholder=" " readonly>
+                </div>
 
-    <form action="/" method="post">
-        <fieldset class="uk-fieldset">
+                <h3 class="text-xl font-semibold mb-4 text-gray-700">Mot à deviner :</h3>
+                <div id="current-word" class="flex justify-center space-x-2 my-8"></div>
+                <p class="font-semibold mt-8 text-gray-700">Nombre d'essais restants : <span id="numberOfTries" class="text-blue-500"></span><br />
+                <span class="font-semibold mt-4 text-gray-700">Score : </span><span id="score" class="text-red-500">1000</span></p>
 
-            <legend class="uk-legend">Nombre d'essai restant : <%= numberOfTries %></legend>
+            </main>
 
-            <div class="uk-margin">
-                <input class="uk-input" type="text" name="word" placeholder="Tapez une lettre">
+            <div class="mt-auto">
+                <div id="virtual-keyboard" class="grid grid-cols-9 gap-1 p-3 bg-gray-800 sm:rounded-b-2xl">
+                    <% 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => { %>
+                        <button class="p-2 bg-gray-200 text-gray-800 rounded shadow text-center font-bold text-lg hover:bg-gray-300 active:bg-gray-400 disabled:bg-gray-600 transition-colors" onclick="selectLetter('<%= letter %>')"><%= letter %></button>
+                    <% }); %>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <div class="uk-margin">
-                <button class="uk-input uk-button-danger uk-form-width-medium" type="submit" name="reset" value="true">Reset</button>
-                <button class="uk-input uk-button-secondary uk-form-width-medium" type="submit" value="form-success">Tester</button>
-            </div>
-
-        </fieldset>
-    </form>
-
-    <% if (game) { %>
-       <h3>Votre mot : <%= game %></h3>
-    <% } %>
-
-    <% if (numberOfTries <= 0) { %>
-        <h3>Le mot était : <%= word %></h3>
-    <% } %>
+    <script>
 
 
-</main>
-
+    </script>
+    <style>
+        @media (max-width: 640px) {
+            .game-container {
+                height: 100vh;
+                max-height: 100vh;
+            }
+        }
+    </style>
 </body>
 </html>

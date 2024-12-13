@@ -3,10 +3,8 @@ const csv = require('csv-parser');
 const fs = require('fs');
 
 class Game {
-
     constructor() {
         this.listOfWords = [];
-        this.numberOfTry = 5;
     }
 
     loadWords() {
@@ -17,8 +15,10 @@ class Game {
                     this.listOfWords.push(row.word.toLowerCase());
                 })
                 .on('end', () => {
-                    console.log('CSV file successfully processed');
                     this.chooseWord();
+                    while (this.word.length < 5 || this.word.length > 8) {
+                        this.chooseWord();
+                    }
                     resolve();
                 })
                 .on('error', reject);
@@ -30,38 +30,32 @@ class Game {
             this.word = this.listOfWords[tools.getRandomInt(this.listOfWords.length)];
             this.unknowWord = this.word.replace(/./g, '#');
         } else {
-            throw new Error("No words available to choose from.");
+            throw new Error("No words available.");
         }
     }
 
-    guess(oneLetter) {
+    guess(oneLetter, unknowWord) {
+        oneLetter = oneLetter.toLowerCase();
         if (!this.word) {
-            throw new Error("The word has not been set. Please ensure that the game has been initialized properly.");
+            throw new Error("No word set.");
         }
-
         if (this.word.includes(oneLetter)) {
-            this.unknowWord = tools.replaceAt(this.unknowWord, this.word.indexOf(oneLetter), oneLetter);
-            return true;
+            for (let i = 0; i < this.word.length; i++) {
+                if (this.word[i] === oneLetter) {
+                    unknowWord = unknowWord.substring(0, i) + this.word[i] + unknowWord.substring(i + 1);
+                }
+            }
+            return { unknowWord: unknowWord, result: true };
         }
-        this.numberOfTry--;
-        return false;
-    }
-
-
-    print() {
-        return this.unknowWord;
-    }
-
-    getNumberOfTries() {
-        return this.numberOfTry;
+        return { unknowWord: unknowWord, result: false };
     }
 
     reset() {
-        this.numberOfTry = 5;
         this.chooseWord();
-        return this.numberOfTry;
-    };
-
+        while (this.word.length < 5 || this.word.length > 8) {
+            this.chooseWord();
+        }
+    }
 }
 
 module.exports = Game;

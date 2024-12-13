@@ -40,8 +40,6 @@ describe("Game test", () => {
         game.word = "damien";
         game.unknowWord = "######";
         game.guess("a");
-        console.log(game.word);
-        console.log(game.unknowWord);
         expect(game.print()).toBe("#a####");
     });
 
