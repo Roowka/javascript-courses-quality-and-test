@@ -59,7 +59,8 @@ app.post('/api/reset', (req, res) => {
 
 // Route pour afficher le résultat
 app.get('/result', async (req, res) => {
-    const {data} = req.query;
+    const { data, shared } = req.query;
+    const isShared = shared === 'true';
 
     if (!data) {
         return res.redirect('/');
@@ -125,6 +126,8 @@ app.get('/result', async (req, res) => {
         imageUrl,
         baseUrl,
         result,
+        data,
+        shared: isShared
     });
 });
 

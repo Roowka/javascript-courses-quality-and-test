@@ -2,11 +2,11 @@
 <html lang="fr" class="h-full">
 <head>
     <%- include('../partials/head'); %>
-    <meta property="og:title" content="Résultat du jeu du pendu" />
-    <meta property="og:description" content="J'ai obtenu un score dans le jeu du pendu !" />
+    <meta property="og:title" content="<%= resultMessage %>" />
+    <meta property="og:description" content="J'ai obtenu un score de <%= score %> en devinant le mot '<%= word %>' dans le jeu du pendu !" />
     <meta property="og:image" content="<%= imageUrl %>" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="<%= baseUrl %>/result" />
+    <meta property="og:url" content="<%= baseUrl %>/result?data=<%= data %>" />
     <title>Résultat du jeu du pendu</title>
 </head>
 <body class="h-full bg-gray-300 text-gray-800">
@@ -14,7 +14,7 @@
     <div class="game-container flex flex-col h-full w-full sm:h-auto max-h-[852px] max-w-[440px] bg-white sm:shadow-lg sm:rounded-2xl">
         <!-- En-tête -->
         <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 sm:rounded-t-2xl">
-            <h1 id="result-message" class="text-4xl font-bold text-center mb-4"></h1>
+            <h1 class="text-4xl font-bold text-center mb-4"><%= resultMessage %></h1>
         </header>
 
         <!-- Contenu principal -->
@@ -22,22 +22,29 @@
             <!-- Mot à deviner -->
             <section class="mb-8">
                 <h2 class="text-xl font-semibold text-gray-700 text-center mb-2">Le mot était :</h2>
-                <p id="word" class="text-3xl font-bold text-center text-blue-600"></p>
+                <p class="text-3xl font-bold text-center text-blue-600"><%= word %></p>
             </section>
 
             <!-- Score -->
             <section class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-700 text-center mb-2">Votre score :</h2>
-                <p id="score" class="text-4xl font-bold text-center text-red-500"></p>
+                <% if (!shared) { %>
+                    <h2 class="text-xl font-semibold text-gray-700 text-center mb-2">Votre score :</h2>
+                <% } else { %>
+                    <h2 class="text-xl font-semibold text-gray-700 text-center mb-2">Score :</h2>
+                <% } %>
+                <p class="text-4xl font-bold text-center text-red-500"><%= score %></p>
             </section>
 
             <!-- Boutons d'action -->
             <div class="text-center space-y-4">
-                <button onclick="shareScore()" class="bg-green-500 text-white py-2 px-4 rounded-lg shadow hover:bg-green-600 transition-colors">
-                    Partager mon score
-                </button>
+                <% if (!shared) { %>
+                    <!-- Bouton Partager -->
+                    <button onclick="shareScore()" class="bg-green-500 text-white py-2 px-4 rounded-lg shadow hover:bg-green-600 transition-colors">
+                        Partager mon score
+                    </button>
+                <% } %>
                 <a href="/" onclick="resetGame(event)" class="inline-block bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition-colors">
-                    Rejouer
+                    <%= shared ? 'Jouer' : 'Rejouer' %>
                 </a>
             </div>
         </main>
@@ -50,35 +57,6 @@
 </div>
 
 <script>
-    // Décoder les données en base64 au chargement de la page
-    window.onload = function () {
-        const params = new URLSearchParams(window.location.search);
-        const data = params.get('data');
-
-        if (!data) {
-            alert('Données manquantes !');
-            window.location.href = '/';
-            return;
-        }
-
-        let decodedData;
-        try {
-            decodedData = JSON.parse(atob(data));
-        } catch (error) {
-            console.error('Erreur lors du décodage des données :', error);
-            window.location.href = '/';
-            return;
-        }
-
-        const { word, score, result } = decodedData;
-
-        document.querySelector('#result-message').textContent =
-            result === 'win' ? 'Félicitations, vous avez gagné ! 🎉' : 'Dommage, vous avez perdu ! 😢';
-
-        document.querySelector('#word').textContent = word;
-        document.querySelector('#score').textContent = score;
-    };
-
     // Réinitialiser le jeu
     function resetGame(event) {
         event.preventDefault();
@@ -91,21 +69,14 @@
 
     // Partager le score
     function shareScore() {
-        const params = new URLSearchParams(window.location.search);
-        const data = params.get('data');
-
-        if (!data) {
-            alert('Données manquantes pour le partage.');
-            return;
-        }
-
-        const shareUrl = `${window.location.origin}/result?data=${data}`;
+        const encodedData = "<%= data %>";
+        const shareUrl = `${window.location.origin}/result?data=${encodedData}&shared=true`;
 
         if (navigator.share) {
             navigator
                 .share({
                     title: 'Mon score au jeu du pendu',
-                    text: "Regardez mon score ! 🎉",
+                    text: `J'ai obtenu un score de <%= score %> en devinant le mot "<%= word %>" dans le jeu du pendu ! 🎉`,
                     url: shareUrl,
                 })
                 .then(() => console.log('Score partagé avec succès !'))
