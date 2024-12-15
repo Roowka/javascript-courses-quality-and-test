@@ -15,7 +15,7 @@ describe('Game Class', () => {
     });
 
     test('should be 5 tries at the beginning of the game', () => {
-        expect(game.getNumberOfTries()).toBe(5);
+        expect(game.getNumberOfTries()).toBe(8);
     });
 
     test('test the try mechanic with a correct guess', () => {
@@ -26,12 +26,12 @@ describe('Game Class', () => {
 
     test('test the try mechanic with an incorrect guess', () => {
         game.guess('z'); // Deviner une lettre incorrecte
-        expect(game.getNumberOfTries()).toBe(4);
+        expect(game.getNumberOfTries()).toBe(7);
     });
 
     test('reset the game, so the number of tries should be 5', () => {
         game.reset();
-        expect(game.getNumberOfTries()).toBe(5);
+        expect(game.getNumberOfTries()).toBe(8);
         expect(game.unknowWord).toEqual('#'.repeat(game.word.length));
     });
 
